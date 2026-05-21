@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
 import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
@@ -9,17 +9,18 @@ import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 
 function App() {
+  const [user, setUser] = useState(null);
+
   return (
     <BrowserRouter>
       <Navbar />
 
       <div className="flex">
-        <Sidebar />
 
         <div className="p-6 flex-1">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Home user={user} />} />
+            <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/registro" element={<Registro />} />
           </Routes>
         </div>
