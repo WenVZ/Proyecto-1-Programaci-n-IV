@@ -1,29 +1,33 @@
-import Navbar from "./components/Navbar"
-import Sidebar from "./components/Sidebar"
-import Footer from "./components/Footer"
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home"
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import Footer from "./components/Footer";
+
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Registro from "./pages/Registro";
 
 function App() {
   return (
-    <div>
-
+    <BrowserRouter>
       <Navbar />
 
       <div className="flex">
-
         <Sidebar />
 
         <div className="p-6 flex-1">
-          <Home />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
+          </Routes>
         </div>
-
       </div>
 
       <Footer />
-
-    </div>
-  )
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
