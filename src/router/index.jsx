@@ -1,3 +1,4 @@
+import { createContext, useState } from "react";
 import {
   createRootRoute,
   createRoute,
@@ -6,31 +7,36 @@ import {
 } from "@tanstack/react-router";
 
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import Footer from "../components/Footer";
 
 import Home from "../pages/Home";
 import Eventos from "../pages/Eventos";
 import Reservas from "../pages/Reservas";
 import Emprendimientos from "../pages/Emprendimientos";
 import Registro from "../pages/Registro";
-import Login from "../pages/Login"; 
+import Login from "../pages/Login";
+
+export const UserContext = createContext(null);
 
 function RootComponent() {
-  return (
-    <div>
-      <Navbar />
-      <Sidebar />
+  const [user, setUser] = useState(null);
 
-      <main>
-        <Outlet />
-      </main>
-    </div>
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      <div>
+        <Navbar />
+        <div className="flex">
+          <main className="p-6 flex-1">
+            <Outlet />
+          </main>
+        </div>
+        <Footer />
+      </div>
+    </UserContext.Provider>
   );
 }
 
-const rootRoute = createRootRoute({
-  component: RootComponent,
-});
+const rootRoute = createRootRoute({ component: RootComponent });
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -62,7 +68,6 @@ const registerRoute = createRoute({
   component: Registro,
 });
 
-// 🔥 AQUÍ ESTABA EL PROBLEMA (FALTABA LOGIN)
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -75,9 +80,7 @@ const routeTree = rootRoute.addChildren([
   reservasRoute,
   emprendimientosRoute,
   registerRoute,
-  loginRoute, // ✅ AGREGADO
+  loginRoute,
 ]);
 
-export const router = createRouter({
-  routeTree,
-});
+export const router = createRouter({ routeTree });
