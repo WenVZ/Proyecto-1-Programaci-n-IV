@@ -54,6 +54,9 @@ function Navbar() {
         >
           Emprendimientos
         </Link>
+        <Link to="/incidencias">
+  Incidencias
+</Link>
       </div>
 
     </nav>
