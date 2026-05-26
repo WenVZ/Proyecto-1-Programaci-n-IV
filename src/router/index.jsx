@@ -15,6 +15,7 @@ import Reservas from "../pages/Reservas";
 import Emprendimientos from "../pages/Emprendimientos";
 import Registro from "../pages/Registro";
 import Login from "../pages/Login";
+import Incidencias from "../pages/Incidencias";
 
 export const UserContext = createContext(null);
 
@@ -74,6 +75,12 @@ const loginRoute = createRoute({
   component: Login,
 });
 
+const incidenciasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/incidencias",
+  component: Incidencias,
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   eventosRoute,
@@ -81,6 +88,7 @@ const routeTree = rootRoute.addChildren([
   emprendimientosRoute,
   registerRoute,
   loginRoute,
+  incidenciasRoute,
 ]);
 
 export const router = createRouter({ routeTree });

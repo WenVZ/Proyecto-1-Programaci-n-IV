@@ -1,25 +1,14 @@
 import { useContext } from "react";
 import { Link } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
+import Contacto from "./Contacto";
+
 import { UserContext } from "../router";
 import parqueDiria from "../assets/parque-nacional-diria.jpg";
 
 function Home() {
   const { user } = useContext(UserContext);
 
-  const form = useForm({
-    defaultValues: {
-      nombre: user?.nombre || "", 
-      correo: "",
-      sugerencia: "",
-    },
-    onSubmit: async ({ value }) => {
 
-      console.log("Datos enviados correctamente:", value);
-      alert(`¡Gracias por tus comentarios, ${value.nombre}! Registro insertado con éxito.`);
-      form.reset();
-    },
-  });
 
   const stats = [
     { valor: "Bosque Seco", label: "Ecosistema principal" },
@@ -261,134 +250,10 @@ function Home() {
         </div>
       </div>
 
-      <div className="bg-stone-100 py-20 px-6 border-t border-stone-200">
-        <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-green-100">
-          
-          <p className="text-green-600 uppercase tracking-widest text-xs font-semibold mb-3 text-center">
-            Contacto directo
-          </p>
-          <h2 
-            className="text-3xl font-bold text-stone-800 mb-4 text-center"
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            ¿Deseas mayor información o dejarnos una sugerencia?
-          </h2>
-          <p className="text-stone-500 text-sm text-center mb-10 max-w-lg mx-auto">
-            Tu opinión nos ayuda a proteger mejor el ecosistema del Diría y a mejorar la experiencia de nuestros visitantes.
-          </p>
+     <Contacto user={user} />
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              <form.Field
-                name="nombre"
-                validators={{
-                  onChange: ({ value }) => !value ? "El nombre es requerido" : undefined
-                }}
-                children={(field) => (
-                  <div className="flex flex-col">
-                    <label htmlFor={field.name} className="text-xs font-semibold text-stone-600 uppercase mb-2 tracking-wider">
-                      Nombre Completo
-                    </label>
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Ej. Juan Pérez"
-                      className="border border-stone-200 bg-stone-50 rounded-xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-green-500 focus:bg-white transition-all text-sm"
-                    />
-                    {field.state.meta.isTouched && field.state.meta.errors.length ? (
-                      <em className="text-red-500 text-xs mt-1 not-italic">{field.state.meta.errors.join(", ")}</em>
-                    ) : null}
-                  </div>
-                )}
-              />
 
-              <form.Field
-                name="correo"
-                validators={{
-                  onChange: ({ value }) => {
-                    if (!value) return "El correo es requerido";
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Formato de correo inválido";
-                    return undefined;
-                  }
-                }}
-                children={(field) => (
-                  <div className="flex flex-col">
-                    <label htmlFor={field.name} className="text-xs font-semibold text-stone-600 uppercase mb-2 tracking-wider">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="ejemplo@correo.com"
-                      className="border border-stone-200 bg-stone-50 rounded-xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-green-500 focus:bg-white transition-all text-sm"
-                    />
-                    {field.state.meta.isTouched && field.state.meta.errors.length ? (
-                      <em className="text-red-500 text-xs mt-1 not-italic">{field.state.meta.errors.join(", ")}</em>
-                    ) : null}
-                  </div>
-                )}
-              />
-            </div>
-
-            <form.Field
-              name="sugerencia"
-              validators={{
-                onChange: ({ value }) => !value ? "El mensaje no puede estar vacío" : undefined
-              }}
-              children={(field) => (
-                <div className="flex flex-col">
-                  <label htmlFor={field.name} className="text-xs font-semibold text-stone-600 uppercase mb-2 tracking-wider">
-                    Sugerencia o Mensaje
-                  </label>
-                  <textarea
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    rows={4}
-                    placeholder="Escribe aquí tus dudas o sugerencias para el SINAC..."
-                    className="border border-stone-200 bg-stone-50 rounded-xl px-4 py-3 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-green-500 focus:bg-white transition-all text-sm resize-none"
-                  />
-                  {field.state.meta.isTouched && field.state.meta.errors.length ? (
-                    <em className="text-red-500 text-xs mt-1 not-italic">{field.state.meta.errors.join(", ")}</em>
-                  ) : null}
-                </div>
-              )}
-            />
-
-            <div className="text-center pt-2">
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting]}
-                children={([canSubmit, isSubmitting]) => (
-                  <button
-                    type="submit"
-                    disabled={!canSubmit}
-                    className="bg-green-700 hover:bg-green-600 disabled:bg-stone-300 text-white font-semibold px-10 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-green-700/20 w-full md:w-auto"
-                  >
-                    {isSubmitting ? "Enviando..." : "Enviar Sugerencia"}
-                  </button>
-                )}
-              />
-            </div>
-          </form>
-
-        </div>
-      </div>
 
       <div className="bg-green-900 text-white text-center py-16 px-6">
 
