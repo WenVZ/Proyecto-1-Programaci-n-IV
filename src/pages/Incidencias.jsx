@@ -1,15 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { UserContext } from "../context/UserContext";
+import { getSession } from "../services/authService";
 
 const BASE_URL = "https://proyecto1prograiv-default-rtdb.firebaseio.com";
 
 export default function Incidencias() {
+  const { user } = useContext(UserContext) || {};
+  const usuarioActual = user || getSession();
+  const rol = String(usuarioActual?.role || usuarioActual?.rol || "").toLowerCase();
+  const esAdmin = rol === "admin" || rol === "administrador";
+
   const [incidencias, setIncidencias] = useState([]);
   const [filtro, setFiltro] = useState("Todas");
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef();
 
-  // Inicialización de TanStack Form
   const formManager = useForm({
     defaultValues: {
       anonimo: false,
@@ -47,7 +53,7 @@ export default function Incidencias() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(nueva),
         });
-        
+
         formManager.reset();
         if (fileRef.current) fileRef.current.value = "";
         cargar();
@@ -74,7 +80,7 @@ export default function Incidencias() {
   const processFile = (file) => {
     if (!file.type.startsWith("image/")) { alert("Seleccione una imagen."); return; }
     if (file.size > 5 * 1024 * 1024) { alert("La imagen supera 5 MB."); return; }
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       formManager.setFieldValue("b64", e.target.result);
@@ -96,6 +102,7 @@ export default function Incidencias() {
     formManager.setFieldValue("imagenUrl", "");
   };
 
+  /* Solo admin */
   const cambiarEstado = async (id, estado) => {
     try {
       await fetch(`${BASE_URL}/incidencias/${id}.json`, {
@@ -127,7 +134,8 @@ export default function Incidencias() {
       ? "bg-amber-50 text-amber-800 border border-amber-200"
       : "bg-green-50 text-green-800 border border-green-200";
 
-  const inputCls = "w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 outline-none focus:border-gray-400 transition-colors";
+  const inputCls =
+    "w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-800 outline-none focus:border-gray-400 transition-colors";
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
@@ -159,7 +167,7 @@ export default function Incidencias() {
 
       <div className="border-t border-gray-100 mb-8" />
 
-      {/* Form */}
+      {/* Formulario de reporte — visible para todos */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -249,10 +257,10 @@ export default function Incidencias() {
           />
         </div>
 
-        {/* Sección de Imagen gestionada por Subscribe */}
+        {/* Imagen */}
         <formManager.Subscribe
           selector={(state) => [state.values.urlMode, state.values.preview, state.values.imagenUrl]}
-          children={([urlMode, preview, imagenUrl]) => (
+          children={([urlMode, preview]) => (
             <div className="mb-3">
               <label className="block text-xs text-gray-400 mb-1">
                 Fotografía <span className="text-gray-300">(opcional)</span>
@@ -278,8 +286,11 @@ export default function Incidencias() {
 
                   {preview ? (
                     <div className="relative inline-block">
-                      <img src={preview} alt="Vista previa"
-                        className="max-h-40 rounded-md border border-gray-200 mx-auto block" />
+                      <img
+                        src={preview}
+                        alt="Vista previa"
+                        className="max-h-40 rounded-md border border-gray-200 mx-auto block"
+                      />
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); removeImage(); }}
@@ -358,7 +369,7 @@ export default function Incidencias() {
 
       <div className="border-t border-gray-100 mb-6" />
 
-      {/* Filters */}
+      {/* Filtros */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
           Incidencias registradas
@@ -368,12 +379,15 @@ export default function Incidencias() {
         </p>
         <div className="flex gap-1.5 flex-wrap">
           {["Todas", "Pendiente", "En proceso", "Resuelta"].map((f) => (
-            <button key={f} onClick={() => setFiltro(f)}
+            <button
+              key={f}
+              onClick={() => setFiltro(f)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 filtro === f
                   ? "bg-green-800 text-white border-green-800"
                   : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
-              }`}>
+              }`}
+            >
               {f}
             </button>
           ))}
@@ -388,17 +402,22 @@ export default function Incidencias() {
           {filtradas.map((item) => (
             <div key={item.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden">
               {item.imagen && (
-                <img src={item.imagen} alt=""
-                  className="w-full h-36 object-cover border-b border-gray-100" />
+                <img
+                  src={item.imagen}
+                  alt=""
+                  className="w-full h-36 object-cover border-b border-gray-100"
+                />
               )}
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <span className="text-sm font-medium text-gray-800">{item.tipo}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                    item.prioridad === "Alta"
-                      ? "bg-orange-50 text-orange-800 border-orange-200"
-                      : "bg-green-50 text-green-800 border-green-200"
-                  }`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border ${
+                      item.prioridad === "Alta"
+                        ? "bg-orange-50 text-orange-800 border-orange-200"
+                        : "bg-green-50 text-green-800 border-green-200"
+                    }`}
+                  >
                     {item.prioridad}
                   </span>
                 </div>
@@ -414,20 +433,29 @@ export default function Incidencias() {
                   {item.estado}
                 </span>
 
-                <div className="flex gap-1.5 flex-wrap">
-                  <button onClick={() => cambiarEstado(item.id, "En proceso")}
-                    className="text-xs px-2.5 py-1 rounded-md border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">
-                    En proceso
-                  </button>
-                  <button onClick={() => cambiarEstado(item.id, "Resuelta")}
-                    className="text-xs px-2.5 py-1 rounded-md border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">
-                    Resuelta
-                  </button>
-                  <button onClick={() => eliminar(item.id)}
-                    className="text-xs px-2.5 py-1 rounded-md border border-red-100 bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-                    Eliminar
-                  </button>
-                </div>
+                {/* Acciones — solo admin */}
+                {esAdmin && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    <button
+                      onClick={() => cambiarEstado(item.id, "En proceso")}
+                      className="text-xs px-2.5 py-1 rounded-md border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors"
+                    >
+                      En proceso
+                    </button>
+                    <button
+                      onClick={() => cambiarEstado(item.id, "Resuelta")}
+                      className="text-xs px-2.5 py-1 rounded-md border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors"
+                    >
+                      Resuelta
+                    </button>
+                    <button
+                      onClick={() => eliminar(item.id)}
+                      className="text-xs px-2.5 py-1 rounded-md border border-red-100 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                )}
 
                 <p className="text-xs text-gray-300 mt-3">{item.fecha}</p>
               </div>
