@@ -1,6 +1,18 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useContext } from "react";
+import { UserContext } from "../context/UserContext";
+import { logout } from "../services/authService";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const { user, setUser } = useContext(UserContext);
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    navigate({ to: "/login" });
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 
       bg-green-950/40 backdrop-blur-md 
@@ -21,18 +33,20 @@ function Navbar() {
         </Link>
 
         <Link
-          to="/registro"
+          to="/login"
           className="hover:text-green-300 transition-colors"
         >
-          Registro
+          Login
         </Link>
 
-        <Link
-          to="/dashboard"
-          className="hover:text-green-300 transition-colors"
-        >
-          Dashboard
-        </Link>
+        {user?.role === "admin" && (
+          <Link
+            to="/dashboard"
+            className="hover:text-green-300 transition-colors"
+          >
+            Dashboard
+          </Link>
+        )}
 
         <Link
           to="/eventos"
@@ -54,6 +68,23 @@ function Navbar() {
         >
           Emprendimientos
         </Link>
+
+        {user ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="hover:text-green-300 transition-colors"
+          >
+            Salir
+          </button>
+        ) : (
+          <Link
+            to="/registro"
+            className="hover:text-green-300 transition-colors"
+          >
+            Registro
+          </Link>
+        )}
         <Link to="/incidencias">
   Incidencias
 </Link>

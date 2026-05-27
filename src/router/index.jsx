@@ -1,13 +1,4 @@
-import { createContext, useState } from "react";
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  Outlet,
-} from "@tanstack/react-router";
-
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
 
 import Home from "../pages/Home";
 import Eventos from "../pages/Eventos";
@@ -15,29 +6,11 @@ import Reservas from "../pages/Reservas";
 import Emprendimientos from "../pages/Emprendimientos";
 import Registro from "../pages/Registro";
 import Login from "../pages/Login";
+import ProtectedDashboard from "../pages/ProtectedDashboard";
+import RootLayout from "../components/RootLayout";
 import Incidencias from "../pages/Incidencias";
 
-export const UserContext = createContext(null);
-
-function RootComponent() {
-  const [user, setUser] = useState(null);
-
-  return (
-    <UserContext.Provider value={{ user, setUser }}>
-      <div>
-        <Navbar />
-        <div className="flex">
-          <main className="p-6 flex-1">
-            <Outlet />
-          </main>
-        </div>
-        <Footer />
-      </div>
-    </UserContext.Provider>
-  );
-}
-
-const rootRoute = createRootRoute({ component: RootComponent });
+const rootRoute = createRootRoute({ component: RootLayout });
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -75,6 +48,12 @@ const loginRoute = createRoute({
   component: Login,
 });
 
+const dashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dashboard",
+  component: ProtectedDashboard,
+});
+
 const incidenciasRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/incidencias",
@@ -88,6 +67,7 @@ const routeTree = rootRoute.addChildren([
   emprendimientosRoute,
   registerRoute,
   loginRoute,
+  dashboardRoute,
   incidenciasRoute,
 ]);
 

@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
+import { registerUser } from "../services/authService";
+import Recaptcha from "../components/Recaptcha";
 
 function Registro() {
-  // luego se cambia esto por el json bin que tenemos que usar
-  const usersDB = [
-    { correo: "test@gmail.com" }
-  ];
-
   const [message, setMessage] = useState("");
   const [showLogin, setShowLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const handleCaptchaChange = useCallback((token) => {
+    setCaptchaToken(token);
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -19,19 +21,32 @@ function Registro() {
     },
 
     onSubmit: async ({ value }) => {
-      const userExists = usersDB.find(
-        (u) => u.correo === value.correo
-      );
-
-      if (userExists) {
-        setMessage("Este correo ya está registrado.");
-        setShowLogin(true);
-        return;
-      }
-
-      setMessage(" Usuario registrado correctamente");
+      setMessage("");
       setShowLogin(false);
-      console.log("Usuario nuevo:", value);
+      setLoading(true);
+
+      try {
+        if (!captchaToken) {
+          throw new Error("Marca el reCAPTCHA antes de registrarte.");
+        }
+
+        if (!value.nombre.trim() || !value.correo.trim() || !value.password.trim()) {
+          throw new Error("Complete todos los campos.");
+        }
+
+        if (value.password.length < 8) {
+          throw new Error("La contrasena debe tener al menos 8 caracteres.");
+        }
+
+        await registerUser(value);
+        setMessage("Usuario registrado correctamente. Ya puedes iniciar sesion.");
+        setShowLogin(true);
+      } catch (error) {
+        setMessage(error.message || "No se pudo registrar el usuario.");
+        setShowLogin(error.message?.includes("registrado"));
+      } finally {
+        setLoading(false);
+      }
     },
   });
 
@@ -85,11 +100,14 @@ function Registro() {
             )}
           </form.Field>
 
+          <Recaptcha onChange={handleCaptchaChange} />
+
           <button
             type="submit"
-            className="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 font-semibold transition-colors"
+            disabled={loading || !captchaToken}
+            className="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 disabled:opacity-60 font-semibold transition-colors"
           >
-            Registrarse
+            {loading ? "Registrando..." : "Registrarse"}
           </button>
         </form>
 
