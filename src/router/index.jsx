@@ -8,6 +8,7 @@ import Registro from "../pages/Registro";
 import Login from "../pages/Login";
 import ProtectedDashboard from "../pages/ProtectedDashboard";
 import RootLayout from "../components/RootLayout";
+import Incidencias from "../pages/Incidencias";
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -53,6 +54,11 @@ const dashboardRoute = createRoute({
   component: ProtectedDashboard,
 });
 
+const incidenciasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/incidencias",
+  component: Incidencias,
+});
 const routeTree = rootRoute.addChildren([
   homeRoute,
   eventosRoute,
@@ -61,6 +67,6 @@ const routeTree = rootRoute.addChildren([
   registerRoute,
   loginRoute,
   dashboardRoute,
+  incidenciasRoute,
 ]);
-
 export const router = createRouter({ routeTree });
