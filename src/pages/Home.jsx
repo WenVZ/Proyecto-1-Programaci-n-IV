@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { Link } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import { UserContext } from "../context/UserContext";
 import Contacto from "./Contacto";
-
-import { UserContext } from "../router";
 import parqueDiria from "../assets/parque-nacional-diria.jpg";
 
 function Home() {
@@ -53,7 +53,7 @@ function Home() {
             Sesión activa: <strong>{user.nombre}</strong>
           </span>
           <span className="uppercase tracking-widest text-xs bg-green-700 px-3 py-1 rounded-full">
-            {user.rol}
+            {user.role}
           </span>
         </div>
       )}

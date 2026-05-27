@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { UserContext } from "../context/UserContext";
+import { getSession } from "../services/authService";
 
 import {
   useReactTable,
@@ -8,18 +10,10 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 
-/* Nota:
-   Esta página administra emprendimientos con CRUD completo.
-   Usa Axios para conectarse a JSONBin y TanStack Table para mostrar la tabla.
-*/
 
 /* API JSONBin */
 const URL = "https://api.jsonbin.io/v3/b/6a13f183ee5a733b1216ab4c";
 
-/* Nota:
-   La llave está aquí porque este proyecto consume JSONBin desde el frontend.
-   En un proyecto real, lo ideal sería protegerla en un backend o variable de entorno.
-*/
 const HEADERS = {
   headers: {
     "Content-Type": "application/json",
@@ -34,7 +28,6 @@ const categorias = [
   "Artesanías",
   "Comida",
   "Tours",
-  "Souvenirs",
 ];
 
 const formInicial = {
@@ -46,6 +39,11 @@ const formInicial = {
 const columnHelper = createColumnHelper();
 
 export default function Emprendimientos() {
+  const { user } = useContext(UserContext) || {};
+  const usuarioActual = user || getSession();
+  const rol = String(usuarioActual?.role || usuarioActual?.rol || "").toLowerCase();
+  const esAdmin = rol === "admin" || rol === "administrador";
+
   /* Estado */
   const [data, setData] = useState([]);
   const [form, setForm] = useState(formInicial);
@@ -77,6 +75,13 @@ export default function Emprendimientos() {
     setTimeout(() => setMensaje(""), 2000);
   };
 
+  const validarAdmin = () => {
+    if (esAdmin) return true;
+
+    mostrar("Solo administradores pueden modificar emprendimientos.");
+    return false;
+  };
+
   /* Limpiar formulario */
   const limpiar = () => {
     setForm(formInicial);
@@ -92,6 +97,8 @@ export default function Emprendimientos() {
 
   /* Crear */
   const crear = async () => {
+    if (!validarAdmin()) return;
+
     const formLimpio = obtenerFormularioLimpio();
 
     if (!formLimpio.nombre || !formLimpio.descripcion || !formLimpio.categoria) {
@@ -118,6 +125,8 @@ export default function Emprendimientos() {
 
   /* Eliminar */
   const eliminar = async (id) => {
+    if (!validarAdmin()) return;
+
     const ok = window.confirm("¿Eliminar registro?");
     if (!ok) return;
 
@@ -139,6 +148,8 @@ export default function Emprendimientos() {
 
   /* Editar */
   const editar = (item) => {
+    if (!validarAdmin()) return;
+
     setForm({
       nombre: item.nombre,
       descripcion: item.descripcion,
@@ -149,6 +160,8 @@ export default function Emprendimientos() {
 
   /* Actualizar */
   const actualizar = async () => {
+    if (!validarAdmin()) return;
+
     const formLimpio = obtenerFormularioLimpio();
 
     if (!formLimpio.nombre || !formLimpio.descripcion || !formLimpio.categoria) {
@@ -204,29 +217,33 @@ export default function Emprendimientos() {
       ),
     }),
 
-    columnHelper.display({
-      id: "acciones",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => editar(row.original)}
-            disabled={guardando}
-            className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Editar
-          </button>
+    ...(esAdmin
+      ? [
+          columnHelper.display({
+            id: "acciones",
+            header: "Acciones",
+            cell: ({ row }) => (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => editar(row.original)}
+                  disabled={guardando}
+                  className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Editar
+                </button>
 
-          <button
-            onClick={() => eliminar(row.original.id)}
-            disabled={guardando}
-            className="rounded-lg bg-green-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-950 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Eliminar
-          </button>
-        </div>
-      ),
-    }),
+                <button
+                  onClick={() => eliminar(row.original.id)}
+                  disabled={guardando}
+                  className="rounded-lg bg-green-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-950 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Eliminar
+                </button>
+              </div>
+            ),
+          }),
+        ]
+      : []),
   ];
 
   // TanStack Table usa este hook oficialmente; se omite este warning del React Compiler.
@@ -266,6 +283,7 @@ export default function Emprendimientos() {
         )}
 
         {/* Formulario */}
+        {esAdmin && (
         <div className="mb-8 overflow-hidden rounded-xl border border-green-100 bg-white shadow-lg">
           <div className="p-5">
             <h2 className="mb-4 text-xl font-bold text-green-900">
@@ -324,6 +342,8 @@ export default function Emprendimientos() {
             </div>
           </div>
         </div>
+
+        )}
 
         {/* Tabla */}
         <div className="overflow-hidden rounded-xl border border-green-100 bg-white shadow-lg">
