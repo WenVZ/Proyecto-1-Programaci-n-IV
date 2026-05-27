@@ -1,10 +1,8 @@
 import { useContext } from "react";
 import { Link } from "@tanstack/react-router";
-import { useForm } from "@tanstack/react-form";
 import { UserContext } from "../context/UserContext";
 import Contacto from "./Contacto";
 
-import { UserContext } from "../router";
 import parqueDiria from "../assets/parque-nacional-diria.jpg";
 
 function Home() {
