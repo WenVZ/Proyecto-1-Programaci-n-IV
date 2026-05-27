@@ -85,6 +85,9 @@ function Navbar() {
             Registro
           </Link>
         )}
+        <Link to="/incidencias">
+  Incidencias
+</Link>
       </div>
 
     </nav>

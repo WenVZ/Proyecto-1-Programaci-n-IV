@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import Incidencias from "./pages/Incidencias";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -22,6 +23,7 @@ function App() {
             <Route path="/" element={<Home user={user} />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/incidencias" element={<Incidencias />} />
           </Routes>
         </div>
       </div>
