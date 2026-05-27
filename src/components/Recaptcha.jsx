@@ -1,22 +1,68 @@
 import { useEffect, useRef, useState } from "react";
 
 const SCRIPT_ID = "google-recaptcha-script";
+let recaptchaScriptPromise;
+
+function waitForRecaptcha() {
+  return new Promise((resolve, reject) => {
+    let intervalId;
+
+    const timeoutId = window.setTimeout(() => {
+      window.clearInterval(intervalId);
+      reject(new Error("recaptcha-timeout"));
+    }, 10000);
+
+    const resolveWhenReady = () => {
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
+      resolve();
+    };
+
+    const checkRecaptcha = () => {
+      if (window.grecaptcha?.render) {
+        if (window.grecaptcha.ready) {
+          window.grecaptcha.ready(resolveWhenReady);
+        } else {
+          resolveWhenReady();
+        }
+      }
+    };
+
+    intervalId = window.setInterval(checkRecaptcha, 100);
+    checkRecaptcha();
+  });
+}
 
 function loadRecaptchaScript() {
-  if (document.getElementById(SCRIPT_ID)) {
-    return Promise.resolve();
+  if (window.grecaptcha?.render) {
+    return waitForRecaptcha();
   }
 
-  return new Promise((resolve, reject) => {
+  if (recaptchaScriptPromise) {
+    return recaptchaScriptPromise;
+  }
+
+  recaptchaScriptPromise = new Promise((resolve, reject) => {
+    const existingScript = document.getElementById(SCRIPT_ID);
+
+    if (existingScript) {
+      waitForRecaptcha().then(resolve).catch(reject);
+      return;
+    }
+
     const script = document.createElement("script");
     script.id = SCRIPT_ID;
     script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
     script.async = true;
     script.defer = true;
-    script.onload = resolve;
+    script.onload = () => {
+      waitForRecaptcha().then(resolve).catch(reject);
+    };
     script.onerror = reject;
     document.body.appendChild(script);
   });
+
+  return recaptchaScriptPromise;
 }
 
 function Recaptcha({ onChange }) {

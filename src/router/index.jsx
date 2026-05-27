@@ -59,7 +59,6 @@ const incidenciasRoute = createRoute({
   path: "/incidencias",
   component: Incidencias,
 });
-
 const routeTree = rootRoute.addChildren([
   homeRoute,
   eventosRoute,
@@ -70,5 +69,4 @@ const routeTree = rootRoute.addChildren([
   dashboardRoute,
   incidenciasRoute,
 ]);
-
 export const router = createRouter({ routeTree });
