@@ -41,8 +41,6 @@ function waitForRecaptcha() {
     };
 
 
-
-
     // Verifica si grecaptcha ya existe
     const checkRecaptcha = () => {
 
@@ -59,18 +57,12 @@ function waitForRecaptcha() {
       }
     };
 
-
-
-
     intervalId = window.setInterval(checkRecaptcha, 100);
 
     // Primera revisión inmediata
     checkRecaptcha();
   });
 }
-
-
-
 
 
 // FUNCIÓN PARA CARGAR EL SCRIPT DE GOOGLE
@@ -86,11 +78,6 @@ function loadRecaptchaScript() {
     return recaptchaScriptPromise;
   }
 
-
-
-
-
-
   recaptchaScriptPromise = new Promise((resolve, reject) => {
 
     const existingScript = document.getElementById(SCRIPT_ID);
@@ -100,11 +87,6 @@ function loadRecaptchaScript() {
       waitForRecaptcha().then(resolve).catch(reject);
       return;
     }
-
-
-
-
-
 
     const script = document.createElement("script");
 
@@ -117,11 +99,6 @@ function loadRecaptchaScript() {
     script.async = true;
 
     script.defer = true;
-
-
-
-
-
 
     script.onload = () => {
 
@@ -136,13 +113,6 @@ function loadRecaptchaScript() {
   return recaptchaScriptPromise;
 }
 
-
-
-
-
-
-
-
 // COMPONENTE RECAPTCHA
 function Recaptcha({ onChange }) {
 
@@ -155,26 +125,11 @@ function Recaptcha({ onChange }) {
   // Obtiene la clave pública desde .env
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
-
-
-
-
-
-
-  useEffect(() => {
-
-    let cancelled = false;
-
-
-
-
-
+  useEffect(() => {let cancelled = false;
 
     async function renderCaptcha() {
 
       if (!siteKey) {      // Si no existe la key
-
-
         // Muestra error
         setError("Falta configurar VITE_RECAPTCHA_SITE_KEY.");
         return;
@@ -184,9 +139,6 @@ function Recaptcha({ onChange }) {
 
         await loadRecaptchaScript();
 
-
-
-
         if (
           cancelled ||
           !containerRef.current ||
@@ -194,12 +146,6 @@ function Recaptcha({ onChange }) {
         ) {
           return;
         }
-
-
-
-
-
-
         widgetIdRef.current = window.grecaptcha.render(
           containerRef.current,
           {
@@ -229,16 +175,7 @@ function Recaptcha({ onChange }) {
     }
 
 
-
-
-
-
     renderCaptcha();    // Ejecuta la función
-
-
-
-
-
 
 
     return () => {
@@ -250,15 +187,10 @@ function Recaptcha({ onChange }) {
 
 
 
-
-
-
-
-
   // Lo que muestra el componente
   return (
 
-    <div className="flex flex-col items-center gap-2">    // Contenedor principal
+    <div className="flex flex-col items-center gap-2">
 
 
       <div ref={containerRef} />
