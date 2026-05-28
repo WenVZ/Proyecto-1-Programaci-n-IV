@@ -12,17 +12,15 @@ import {
 
 
 /* API JSONBin */
-const URL = "https://api.jsonbin.io/v3/b/6a13f183ee5a733b1216ab4c";
+const URL = `https://api.jsonbin.io/v3/b/${import.meta.env.VITE_JSONBIN_EMPRENDIMIENTOS_BIN_ID}`;
 
 const HEADERS = {
   headers: {
     "Content-Type": "application/json",
-    "X-Master-Key":
-      "$2a$10$Yj0n3PMXBv59/6uS6NvE1O2NARQX.kOKxPn9cFJB5RdfDo2WkbQp2",
+    "X-Master-Key": import.meta.env.VITE_JSONBIN_EMPRENDIMIENTOS_KEY,
   },
 };
 
-/* Categorías */
 const categorias = [
   "Alojamientos",
   "Artesanías",

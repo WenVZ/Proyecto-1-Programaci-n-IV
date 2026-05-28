@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { getSession } from "../services/authService";
 
+//firebase porque en jsonbin las imagenes no se subia por el peso y entonces se ocupba pagar
 const BASE_URL = "https://proyecto1prograiv-default-rtdb.firebaseio.com";
 
 const toBase64 = (file) =>
