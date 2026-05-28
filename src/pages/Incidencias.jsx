@@ -140,7 +140,6 @@ export default function Incidencias() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-xl font-medium text-gray-900 tracking-tight">
           Reporte de incidencias
@@ -150,7 +149,6 @@ export default function Incidencias() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-8">
         {[
           { label: "Total", value: incidencias.length, color: "text-gray-800" },
@@ -167,7 +165,6 @@ export default function Incidencias() {
 
       <div className="border-t border-gray-100 mb-8" />
 
-      {/* Formulario de reporte — visible para todos */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -180,7 +177,6 @@ export default function Incidencias() {
           Nuevo reporte
         </p>
 
-        {/* Anónimo */}
         <formManager.Field
           name="anonimo"
           children={(field) => (
@@ -197,7 +193,7 @@ export default function Incidencias() {
         />
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
-          {/* Nombre condicional */}
+
           <formManager.Subscribe
             selector={(state) => state.values.anonimo}
             children={(anonimo) => {
@@ -221,7 +217,7 @@ export default function Incidencias() {
             }}
           />
 
-          {/* Tipo */}
+
           <formManager.Field
             name="tipo"
             children={(field) => (
@@ -240,7 +236,7 @@ export default function Incidencias() {
             )}
           />
 
-          {/* Ubicación */}
+
           <formManager.Field
             name="ubicacion"
             children={(field) => (
@@ -257,7 +253,7 @@ export default function Incidencias() {
           />
         </div>
 
-        {/* Imagen */}
+
         <formManager.Subscribe
           selector={(state) => [state.values.urlMode, state.values.preview, state.values.imagenUrl]}
           children={([urlMode, preview]) => (
@@ -342,7 +338,7 @@ export default function Incidencias() {
           )}
         />
 
-        {/* Descripción */}
+
         <formManager.Field
           name="descripcion"
           children={(field) => (
@@ -394,7 +390,7 @@ export default function Incidencias() {
         </div>
       </div>
 
-      {/* Cards */}
+
       {filtradas.length === 0 ? (
         <p className="text-center text-sm text-gray-300 py-16">Sin incidencias en esta categoría.</p>
       ) : (
@@ -433,7 +429,7 @@ export default function Incidencias() {
                   {item.estado}
                 </span>
 
-                {/* Acciones — solo admin */}
+
                 {esAdmin && (
                   <div className="flex gap-1.5 flex-wrap">
                     <button

@@ -136,7 +136,7 @@ function ReservasTable({ data, loading, error }) {
         accessorFn: (row) => row.cantidad || row.cupos || row.personas || 1,
         cell: (info) => (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-100 tabular-nums">
-            {info.getValue()} Pax
+            {info.getValue()} Persona/s
           </span>
         ),
       },
