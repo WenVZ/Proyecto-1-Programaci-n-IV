@@ -21,15 +21,13 @@ function Navbar() {
 
       <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
 
-        {/* Logo */}
         <Link
           to="/"
           className="text-xl font-semibold tracking-wide"
         >
-          Parque Diría
         </Link>
 
-        {/* Botón hamburguesa */}
+        {/* Boton hamburguesa */}
         <button
           className="md:hidden"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -58,7 +56,6 @@ function Navbar() {
           </svg>
         </button>
 
-        {/* Links desktop */}
         <div className="hidden md:flex gap-6 items-center text-sm">
 
           <Link to="/" className="hover:text-green-300 transition">
@@ -109,7 +106,6 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Menú móvil */}
       {menuOpen && (
         <div className="md:hidden px-5 pb-5 flex flex-col gap-4 bg-green-950/95">
 
