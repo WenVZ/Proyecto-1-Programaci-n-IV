@@ -3,8 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { getSession } from "../services/authService";
 
-//firebase porque en jsonbin las imagenes no se subia por el peso y entonces se ocupba pagar
-const BASE_URL = "https://proyecto1prograiv-default-rtdb.firebaseio.com";
+const API = "https://localhost:7092/api/eventos";
 
 const toBase64 = (file) =>
   new Promise((res, rej) => {
@@ -13,6 +12,11 @@ const toBase64 = (file) =>
     reader.onload = () => res(reader.result);
     reader.onerror = (error) => rej(error);
   });
+
+const getHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
 
 function Field({ label, error, children }) {
   return (
@@ -61,15 +65,20 @@ export default function Eventos() {
       cupos: "",
     },
     onSubmit: async ({ value }) => {
-      const metodo = editando ? "PATCH" : "POST";
-      const url = editando
-        ? `${BASE_URL}/eventos/${editando}.json`
-        : `${BASE_URL}/eventos.json`;
+      const metodo = editando ? "PUT" : "POST";
+      const url = editando ? `${API}/${editando}` : API;
 
       await fetch(url, {
         method: metodo,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...value, cupos: Number(value.cupos) }),
+        headers: getHeaders(),
+        body: JSON.stringify({
+          nombre: value.nombre,
+          fecha: value.fecha,
+          hora: value.hora,
+          descripcion: value.descripcion,
+          imagen: value.imagen,
+          cupos: Number(value.cupos),
+        }),
       });
 
       setOpenEvento(false);
@@ -82,10 +91,9 @@ export default function Eventos() {
 
   const cargarEventos = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/eventos.json`);
+      const res = await fetch(API);
       const data = await res.json();
-      if (!data) { setEventos([]); return; }
-      setEventos(Object.entries(data).map(([id, evento]) => ({ id, ...evento })));
+      setEventos(data);
     } catch (error) {
       console.error(error);
     }
@@ -102,55 +110,61 @@ export default function Eventos() {
     }
 
     setEventoSeleccionado(evento);
-
     setReserva({
-  nombre:     usuarioActual.name || usuarioActual.nombre || usuarioActual.email || "Usuario",
-  email:      usuarioActual.email || "",
-  fecha:      evento.fecha,
-  horaEvento: evento.hora || "",
-  hora:       new Date().toLocaleTimeString("es-CR"),
-  personas:   1,
-  actividad:  evento.nombre,
-  estado:     "pendiente",
-});
+      nombre: usuarioActual.name || usuarioActual.nombre || usuarioActual.email || "Usuario",
+      email: usuarioActual.email || "",
+      fecha: evento.fecha,
+      horaEvento: evento.hora || "",
+      hora: new Date().toLocaleTimeString("es-CR"),
+      personas: 1,
+      actividad: evento.nombre,
+      estado: "pendiente",
+    });
 
     setOpenReserva(true);
   };
 
-  const guardarReserva = async () => {
-    const personas = Number(reserva.personas);
+const guardarReserva = async () => {
+  const personas = Number(reserva.personas);
+  if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
+  if (personas > eventoSeleccionado.cupos) {
+    alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
+    return;
+  }
 
-    if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
-    if (personas > eventoSeleccionado.cupos) {
-      alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
-      return;
-    }
+  // Guardar reserva en el backend (no necesita token)
+  await fetch("https://localhost:7092/api/reservas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(reserva),
+  });
 
-    await fetch(`${BASE_URL}/reservas.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(reserva),
-    });
+  // Actualizar cupos — ahora con token del usuario logueado
+  await fetch(`https://localhost:7092/api/eventos/${eventoSeleccionado.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({
+      ...eventoSeleccionado,
+      cupos: eventoSeleccionado.cupos - personas,
+    }),
+  });
 
-    await fetch(`${BASE_URL}/eventos/${eventoSeleccionado.id}.json`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cupos: eventoSeleccionado.cupos - personas }),
-    });
-
-    alert("¡Reserva realizada correctamente!");
-    setOpenReserva(false);
-    cargarEventos();
-  };
+  alert("¡Reserva realizada correctamente!");
+  setOpenReserva(false);
+  cargarEventos();
+};
 
   const editarEvento = (evento) => {
     form.reset({
-      nombre:      evento.nombre,
-      fecha:       evento.fecha,
-      hora:        evento.hora || "",
+      nombre: evento.nombre,
+      fecha: evento.fecha,
+      hora: evento.hora || "",
       descripcion: evento.descripcion,
-      imagen:      evento.imagen,
-      cupos:       evento.cupos,
+      imagen: evento.imagen,
+      cupos: evento.cupos,
     });
     setPreviewUrl(evento.imagen || "");
     setEditando(evento.id);
@@ -159,7 +173,10 @@ export default function Eventos() {
 
   const eliminarEvento = async (id) => {
     if (!window.confirm("¿Eliminar este evento?")) return;
-    await fetch(`${BASE_URL}/eventos/${id}.json`, { method: "DELETE" });
+    await fetch(`${API}/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
     cargarEventos();
   };
 

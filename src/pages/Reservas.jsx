@@ -1,24 +1,28 @@
 import { useEffect, useState, useMemo } from "react";
 import { Navigate } from "@tanstack/react-router";
 import emailjs from "@emailjs/browser";
-
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-
 import { getSession } from "../services/authService";
 
 const EMAILJS_SERVICE_ID  = "service_berf2ts";
 const EMAILJS_TEMPLATE_ID = "template_m063v78";
 const EMAILJS_PUBLIC_KEY  = "sWBrop4Yb1ygJUKDh";
 
-const BASE_URL = "https://proyecto1prograiv-default-rtdb.firebaseio.com";
+const API = "https://localhost:7092/api/reservas";
+
+const getHeaders = () => ({
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
 
 function Reservas() {
   const user = getSession();
-
   if (!user) return <Navigate to="/login" replace />;
 
   const rol = String(user?.role || user?.rol || "").toLowerCase();
@@ -28,48 +32,60 @@ function Reservas() {
   const [enviando, setEnviando] = useState(null);
 
   const cargarReservas = async () => {
-    const res = await fetch(`${BASE_URL}/reservas.json`);
-    const data = await res.json();
-    if (!data) { setReservas([]); return; }
-    setReservas(Object.entries(data).map(([id, r]) => ({ id, ...r })));
+    try {
+      const res = await fetch(API, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const data = await res.json();
+      setReservas(data || []);
+    } catch (error) {
+      console.error("Error al cargar reservas:", error);
+    }
   };
 
   useEffect(() => { cargarReservas(); }, []);
 
   const eliminarReserva = async (id) => {
-    await fetch(`${BASE_URL}/reservas/${id}.json`, { method: "DELETE" });
+    if (!window.confirm("¿Eliminar esta reserva?")) return;
+    await fetch(`${API}/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
     cargarReservas();
   };
 
   const confirmarReserva = async (reserva) => {
     setEnviando(reserva.id);
     try {
-      // 1. Actualizar estado en Firebase
-      await fetch(`${BASE_URL}/reservas/${reserva.id}.json`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "Confirmada" }),
+      await fetch(`${API}/${reserva.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ ...reserva, estado: "Confirmada" }),
       });
 
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         {
-          nombre:    reserva.nombre,
-          email:     reserva.email,   // correo del cliente guardado en la reserva
-          actividad: reserva.actividad,
-          fecha:     reserva.fecha,
-              horaEvento:  reserva.horaEvento,
-
-          personas:  reserva.personas,
-          tiempo:    new Date().toLocaleString("es-CR"),
+          nombre:     reserva.nombre,
+          email:      reserva.email,
+          actividad:  reserva.actividad,
+          fecha:      reserva.fecha,
+          horaEvento: reserva.horaEvento,
+          personas:   reserva.personas,
+          tiempo:     new Date().toLocaleString("es-CR"),
         },
         EMAILJS_PUBLIC_KEY
       );
 
-      alert(`✅ Reserva confirmada. Notificación enviada a ${reserva.email    }`);
+      alert(`✅ Reserva confirmada. Notificación enviada a ${reserva.email}`);
     } catch (err) {
-      console.error("Error al enviar correo:", err);
+      console.error("Error al confirmar:", err);
       alert("Reserva confirmada, pero no se pudo enviar el correo.");
     } finally {
       setEnviando(null);
@@ -80,13 +96,13 @@ function Reservas() {
   const nombreUsuario = user?.name || user?.nombre || user?.email;
   const reservasFiltradas = isAdmin
     ? reservas
-    : reservas.filter((r) => r.nombre === nombreUsuario);
+    : reservas.filter((r) => r.nombre === nombreUsuario || r.email === user?.email);
 
   const columns = useMemo(
     () => [
       { header: "Nombre",    accessorKey: "nombre" },
       { header: "Fecha",     accessorKey: "fecha" },
-{ header: "Hora",  accessorKey: "horaEvento" },
+      { header: "Hora",      accessorKey: "horaEvento" },
       { header: "Personas",  accessorKey: "personas" },
       { header: "Actividad", accessorKey: "actividad" },
       {
@@ -172,8 +188,7 @@ function Reservas() {
                 <tr key={row.id} className="border-b hover:bg-green-50">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-4">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext()) ||
-                        row.getValue(cell.column.id)}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>

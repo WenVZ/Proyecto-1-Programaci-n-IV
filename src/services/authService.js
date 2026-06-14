@@ -1,63 +1,13 @@
 import axios from "axios";
 
-const API_URL = "https://api.jsonbin.io/v3";
-const BIN_ID = import.meta.env.VITE_JSONBIN_BIN_ID;
-const ACCESS_KEY = import.meta.env.VITE_JSONBIN_ACCESS_KEY;
-const MASTER_KEY = import.meta.env.VITE_JSONBIN_MASTER_KEY;
+const API_URL = "https://localhost:7092/api";
 const SESSION_KEY = "sigtad_user";
 
-function getAuthHeader() {
-  if (ACCESS_KEY) return { "X-Access-Key": ACCESS_KEY };
-  if (MASTER_KEY) return { "X-Master-Key": MASTER_KEY };
-  return {};
-}
-
-const jsonbin = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-    ...getAuthHeader(),
-  },
-});
-
-function assertJsonBinConfig() {
-  if (!BIN_ID || (!ACCESS_KEY && !MASTER_KEY)) {
-    throw new Error(
-      "Faltan VITE_JSONBIN_BIN_ID y VITE_JSONBIN_ACCESS_KEY en el archivo .env"
-    );
-  }
-}
-
-function cleanEmail(email) {
-  return email.trim().toLowerCase();
-}
-
-function publicUser(user) {
-  return {
-    id: user.id,
-    nombre: user.nombre,
-    correo: user.email || user.correo,
-    email: user.email || user.correo,
-    role: user.role,
-  };
-}
-
-function normalizeRecord(record) {
-  if (Array.isArray(record)) return { usuarios: record };
-  return {
-    ...record,
-    usuarios: Array.isArray(record?.usuarios)
-      ? record.usuarios
-      : Array.isArray(record?.users)
-        ? record.users
-        : [],
-  };
-}
+// =================== SESIÓN ===================
 
 export function getSession() {
   const stored = localStorage.getItem(SESSION_KEY);
   if (!stored) return null;
-
   try {
     return JSON.parse(stored);
   } catch {
@@ -67,70 +17,53 @@ export function getSession() {
 }
 
 export function saveSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(publicUser(user)));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 }
 
 export function logout() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("token");
 }
 
-export async function getUsersRecord() {
-  assertJsonBinConfig();
-  const response = await jsonbin.get(`/b/${BIN_ID}/latest`, {
-    headers: { "X-Bin-Meta": "false" },
-  });
-  return normalizeRecord(response.data);
-}
-
-async function saveUsersRecord(record) {
-  assertJsonBinConfig();
-  const response = await jsonbin.put(`/b/${BIN_ID}`, record, {
-    headers: { "X-Bin-Versioning": "false" },
-  });
-  return normalizeRecord(response.data.record);
-}
-
-export async function registerUser({ nombre, correo, password }) {
-  const record = await getUsersRecord();
-  const normalizedEmail = cleanEmail(correo);
-  const userExists = record.usuarios.some(
-    (user) => cleanEmail(user.email || user.correo) === normalizedEmail
-  );
-
-  if (userExists) {
-    throw new Error("Este correo ya esta registrado.");
-  }
-
-  const nextId =
-    Math.max(0, ...record.usuarios.map((user) => Number(user.id) || 0)) + 1;
-  const user = {
-    id: nextId,
-    nombre: nombre.trim(),
-    email: normalizedEmail,
-    password,
-    role: "user",
-  };
-
-  const updatedRecord = {
-    ...record,
-    usuarios: [...record.usuarios, user],
-  };
-
-  await saveUsersRecord(updatedRecord);
-  return publicUser(user);
-}
+// =================== AUTH ===================
 
 export async function loginUser({ correo, password }) {
-  const record = await getUsersRecord();
-  const normalizedEmail = cleanEmail(correo);
-  const user = record.usuarios.find(
-    (savedUser) => cleanEmail(savedUser.email || savedUser.correo) === normalizedEmail
-  );
+  try {
+    const res = await axios.post(`${API_URL}/auth/login`, { correo, password });
+    console.log("Respuesta del backend:", res.data);
 
-  if (!user || user.password !== password) {
-    throw new Error("Correo o contrasena incorrectos.");
+    const token = res.data.token;
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const rol = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+    const email = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+
+    const user = {
+      email,
+      correo: email,
+      role: rol,
+    };
+
+    localStorage.setItem("token", token);
+    saveSession(user);
+
+    return user;
+  } catch (error) {
+    // 👇 Esto nos dirá exactamente qué está fallando
+    console.error("Error completo:", error);
+    console.error("Respuesta del servidor:", error?.response?.data);
+    console.error("Status:", error?.response?.status);
+    throw new Error("Correo o contraseña incorrectos.");
   }
+}
 
-  saveSession(user);
-  return publicUser(user);
+// =================== REGISTRO ===================
+// El registro sigue igual por ahora, lo conectamos al backend después
+
+export async function registerUser({ nombre, correo, password }) {
+  try {
+    await axios.post(`${API_URL}/auth/register`, { nombre, correo, password });
+  } catch {
+    throw new Error("No se pudo registrar el usuario.");
+  }
 }
