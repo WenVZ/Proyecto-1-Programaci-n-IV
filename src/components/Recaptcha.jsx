@@ -258,7 +258,7 @@ function Recaptcha({ onChange }) {
   // Lo que muestra el componente
   return (
 
-    <div className="flex flex-col items-center gap-2">    // Contenedor principal
+    <div className="flex flex-col items-center gap-2">   
 
 
       <div ref={containerRef} />
