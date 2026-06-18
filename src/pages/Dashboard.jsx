@@ -4,8 +4,7 @@ import { getSession } from "../services/authService";
 import { Briefcase, AlertTriangle, Calendar, Ticket, ChevronLeft, ChevronRight, ArrowUpDown, ClipboardList } from "lucide-react";
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, flexRender } from "@tanstack/react-table";
 
-const API = "https://localhost:7092/api";
-
+const API = `${import.meta.env.VITE_API_URL}/api`;
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });

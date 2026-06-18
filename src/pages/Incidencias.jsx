@@ -3,8 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { UserContext } from "../context/UserContext";
 import { getSession } from "../services/authService";
 
-const API = "https://localhost:7092/api/incidencias";
-
+const API = `${import.meta.env.VITE_API_URL}/api/incidencias`;
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });

@@ -12,7 +12,7 @@ const EMAILJS_SERVICE_ID  = "service_berf2ts";
 const EMAILJS_TEMPLATE_ID = "template_m063v78";
 const EMAILJS_PUBLIC_KEY  = "sWBrop4Yb1ygJUKDh";
 
-const API = "https://localhost:7092/api/reservas";
+const API = `${import.meta.env.VITE_API_URL}/api/reservas`;
 
 const getHeaders = () => ({
   headers: {
