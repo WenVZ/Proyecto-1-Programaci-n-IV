@@ -9,8 +9,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 
-const API = "https://localhost:7092/api/emprendimientos";
-
+const API = `${import.meta.env.VITE_API_URL}/api/emprendimientos`;
 const getHeaders = () => ({
   headers: {
     "Content-Type": "application/json",

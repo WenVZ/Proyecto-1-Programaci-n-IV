@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { getSession } from "../services/authService";
 
-const API = "https://localhost:7092/api/eventos";
+const API = `${import.meta.env.VITE_API_URL}/api/eventos`;
 
 const toBase64 = (file) =>
   new Promise((res, rej) => {
@@ -132,15 +132,21 @@ const guardarReserva = async () => {
     return;
   }
 
-  // Guardar reserva en el backend (no necesita token)
-  await fetch("https://localhost:7092/api/reservas", {
+ const guardarReserva = async () => {
+  const personas = Number(reserva.personas);
+  if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
+  if (personas > eventoSeleccionado.cupos) {
+    alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
+    return;
+  }
+
+  await fetch(`${import.meta.env.VITE_API_URL}/api/reservas`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(reserva),
   });
 
-  // Actualizar cupos — ahora con token del usuario logueado
-  await fetch(`https://localhost:7092/api/eventos/${eventoSeleccionado.id}`, {
+  await fetch(`${import.meta.env.VITE_API_URL}/api/eventos/${eventoSeleccionado.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -156,6 +162,9 @@ const guardarReserva = async () => {
   setOpenReserva(false);
   cargarEventos();
 };
+
+
+
 
   const editarEvento = (evento) => {
     form.reset({
