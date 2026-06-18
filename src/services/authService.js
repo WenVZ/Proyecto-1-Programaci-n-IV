@@ -3,7 +3,6 @@ import axios from "axios";
 const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 const SESSION_KEY = "sigtad_user";
 
-// =================== SESIÓN ===================
 
 export function getSession() {
   const stored = localStorage.getItem(SESSION_KEY);
@@ -25,7 +24,6 @@ export function logout() {
   localStorage.removeItem("token");
 }
 
-// =================== AUTH ===================
 
 export async function loginUser({ correo, password }) {
   try {
@@ -49,7 +47,6 @@ export async function loginUser({ correo, password }) {
 
     return user;
   } catch (error) {
-    // 👇 Esto nos dirá exactamente qué está fallando
     console.error("Error completo:", error);
     console.error("Respuesta del servidor:", error?.response?.data);
     console.error("Status:", error?.response?.status);
@@ -57,8 +54,6 @@ export async function loginUser({ correo, password }) {
   }
 }
 
-// =================== REGISTRO ===================
-// El registro sigue igual por ahora, lo conectamos al backend después
 
 export async function registerUser({ nombre, correo, password }) {
   try {
