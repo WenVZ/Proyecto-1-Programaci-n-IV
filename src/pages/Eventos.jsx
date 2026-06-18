@@ -124,47 +124,41 @@ export default function Eventos() {
     setOpenReserva(true);
   };
 
-const guardarReserva = async () => {
-  const personas = Number(reserva.personas);
-  if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
-  if (personas > eventoSeleccionado.cupos) {
-    alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
-    return;
-  }
+  const guardarReserva = async () => {
+    const personas = Number(reserva.personas);
+    if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
+    if (personas > eventoSeleccionado.cupos) {
+      alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
+      return;
+    }
 
- const guardarReserva = async () => {
-  const personas = Number(reserva.personas);
-  if (personas <= 0) { alert("Ingrese una cantidad válida"); return; }
-  if (personas > eventoSeleccionado.cupos) {
-    alert(`Solo quedan ${eventoSeleccionado.cupos} cupos disponibles`);
-    return;
-  }
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/reservas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reserva),
+      });
 
-  await fetch(`${import.meta.env.VITE_API_URL}/api/reservas`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(reserva),
-  });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/eventos/${eventoSeleccionado.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...eventoSeleccionado,
+          cupos: eventoSeleccionado.cupos - personas,
+        }),
+      });
 
-  await fetch(`${import.meta.env.VITE_API_URL}/api/eventos/${eventoSeleccionado.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-    body: JSON.stringify({
-      ...eventoSeleccionado,
-      cupos: eventoSeleccionado.cupos - personas,
-    }),
-  });
-
-  alert("¡Reserva realizada correctamente!");
-  setOpenReserva(false);
-  cargarEventos();
-};
-
-
-
+      alert("¡Reserva realizada correctamente!");
+      setOpenReserva(false);
+      cargarEventos();
+    } catch (error) {
+      console.error("Error al procesar la reserva:", error);
+      alert("Ocurrió un error al guardar la reserva.");
+    }
+  };
 
   const editarEvento = (evento) => {
     form.reset({
@@ -251,7 +245,7 @@ const guardarReserva = async () => {
                     <button onClick={() => eliminarEvento(evento.id)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
                       Eliminar
                     </button>
-                  </>
+                  </                  >
                 )}
               </div>
             </div>
